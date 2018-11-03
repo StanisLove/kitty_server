@@ -7,17 +7,7 @@ start_link() -> spawn_link(fun init/0).
 
 %% Sync call with waiting
 order_cat(Pid, Name, Color, Description) ->
-  Ref = erlang:monitor(process, Pid),
-  Pid ! {self(), Ref, {order, Name, Color, Description}},
-  receive
-    {Ref, Cat} ->
-      erlang:demonitor(Ref, [flush]),
-      Cat;
-    {'DOWN', Ref, process, Pid, Reason} ->
-      erlang:error(Reason)
-  after 5000 ->
-    erlang:error(timeout)
-  end.
+  my_server:call(Pid, {order, Name, Color, Description}).
 
 %% Async call
 return_cat(Pid, Cat=#cat{}) ->
@@ -26,17 +16,7 @@ return_cat(Pid, Cat=#cat{}) ->
 
 %% Sync call
 close_shop(Pid) ->
-  Ref = erlang:monitor(process, Pid),
-  Pid ! {self(), Ref, terminate},
-  receive
-    {Ref, ok} ->
-      erlang:demonitor(Ref, [flush]),
-      ok;
-    {'DOWN', Ref, process, Pid, Reason} ->
-      erlang:error(Reason)
-  after 5000 ->
-    erlang:error(timeout)
-  end.
+  my_server:call(Pid, terminate).
 
 %%% Server functions
 
